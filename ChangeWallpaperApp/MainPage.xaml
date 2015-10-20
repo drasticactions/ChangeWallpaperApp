@@ -1,0 +1,20 @@
+﻿<Page
+    x:Class="ChangeWallpaperApp.MainPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:ChangeWallpaperApp"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:viewModels="using:ChangeWallpaperApp.ViewModels"
+    mc:Ignorable="d">
+    <Page.DataContext>
+        <viewModels:MainPageViewModel />
+    </Page.DataContext>
+    <Grid Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
+        <StackPanel HorizontalAlignment="Center"  VerticalAlignment="Center">
+            <Button Command="{Binding SelectImageCommand}"  HorizontalAlignment="Center" Content="Select Image"/>
+            <Button Command="{Binding ClickChangeWallpaperCommand}" IsEnabled="{Binding IsImageSelected}"  HorizontalAlignment="Center"  Margin="0,5,0,0" Content="Change Wallpaper"/>
+            <Button Command="{Binding ClickChangeWallpaperLocalFileCommand}"  HorizontalAlignment="Center" Margin="0,5,0,0" Content="Change Wallpaper (Asset)"/>
+        </StackPanel>
+    </Grid>
+</Page>
