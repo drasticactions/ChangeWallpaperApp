@@ -15,6 +15,7 @@
             <Button Command="{Binding SelectImageCommand}"  HorizontalAlignment="Center" Content="Select Image"/>
             <Button Command="{Binding ClickChangeWallpaperCommand}" IsEnabled="{Binding IsImageSelected}"  HorizontalAlignment="Center"  Margin="0,5,0,0" Content="Change Wallpaper"/>
             <Button Command="{Binding ClickChangeWallpaperLocalFileCommand}"  HorizontalAlignment="Center" Margin="0,5,0,0" Content="Change Wallpaper (Asset)"/>
+            <Button Command="{Binding ClickChangeWallpaperViaNasaCommand}"  HorizontalAlignment="Center" Margin="0,5,0,0" Content="Change Wallpaper (Nasa)"/>
         </StackPanel>
     </Grid>
 </Page>

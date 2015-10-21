@@ -1,12 +1,16 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
+using Windows.Networking.BackgroundTransfer;
 using Windows.Storage;
 using Windows.Storage.Pickers;
 using Windows.System.UserProfile;
 using ChangeWallpaperApp.Tools;
+using HtmlAgilityPack;
 
 namespace ChangeWallpaperApp.ViewModels
 {
@@ -17,8 +21,10 @@ namespace ChangeWallpaperApp.ViewModels
             // Do proper delegate commands! I'm being lazy. :\
             ClickChangeWallpaperCommand = new AsyncDelegateCommand(async o => { await ChangeWallpaper(false); },
                 o => true);
-            ClickChangeWallpaperLocalFileCommand = new AsyncDelegateCommand(async o => { await ChangeWallpaper(true); },
+            ClickChangeWallpaperViaNasaCommand = new AsyncDelegateCommand(async o => { await ChangeWallpaperViaNasa(); },
     o => true);
+            ClickChangeWallpaperLocalFileCommand = new AsyncDelegateCommand(async o => { await ChangeWallpaper(true); },
+   o => true);
             SelectImageCommand = new AsyncDelegateCommand(async o => { await SelectImage(); },
                 o => true);
         }
@@ -56,7 +62,7 @@ namespace ChangeWallpaperApp.ViewModels
         }
 
         public AsyncDelegateCommand SelectImageCommand { get; private set; }
-
+        public AsyncDelegateCommand ClickChangeWallpaperViaNasaCommand { get; private set; }
         public AsyncDelegateCommand ClickChangeWallpaperLocalFileCommand { get; private set; }
         public AsyncDelegateCommand ClickChangeWallpaperCommand { get; private set; }
         public event EventHandler<EventArgs> ChangeSuccessful;
@@ -105,6 +111,49 @@ namespace ChangeWallpaperApp.ViewModels
             }
              IsLoading = false;
             base.RaiseEvent(success ? ChangeSuccessful : ChangeFailed, EventArgs.Empty);
+        }
+
+        public async Task ChangeWallpaperViaNasa()
+        {
+            var url = await GetImageLink();
+            SelectedImage = await StoreImage("http://apod.nasa.gov/apod/" + url);
+            await ChangeWallpaper(false);
+        }
+
+        private async Task<StorageFile> StoreImage(string url)
+        {
+            var fileName = "picture.jpg";
+            var folder = ApplicationData.Current.LocalFolder;
+            var file = await folder.CreateFileAsync(fileName, CreationCollisionOption.ReplaceExisting);
+            var downloader = new BackgroundDownloader();
+            var download = downloader.CreateDownload(
+                new Uri(url), 
+                file);
+
+            var res = await download.StartAsync();
+
+            return file;
+        }
+
+        private async Task<string> GetImageLink()
+        {
+            using (var httpClient = new HttpClient())
+            {
+                var result = await httpClient.GetAsync("http://apod.nasa.gov/apod/astropix.html");
+                if (!result.IsSuccessStatusCode)
+                {
+                    throw new Exception(string.Format("Failed to load page: {0}", string.Concat(result.StatusCode, Environment.NewLine, "http://apod.nasa.gov/apod/astropix.html")));
+                }
+                var stream = await result.Content.ReadAsStreamAsync();
+                using (var reader = new StreamReader(stream, Encoding.GetEncoding("ISO-8859-1")))
+                {
+                    var html = reader.ReadToEnd();
+                    var doc = new HtmlDocument();
+                    doc.LoadHtml(html);
+                    var image = doc.DocumentNode.Descendants("img").FirstOrDefault();
+                    return image != null ? image.GetAttributeValue("src", string.Empty) : string.Empty;
+                }
+            }
         }
     }
 }
